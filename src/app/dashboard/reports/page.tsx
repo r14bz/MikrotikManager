@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Fragment } from "react"
 import {
   BarChart3,
   DollarSign,
@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Download,
   Upload,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
 
 function getCurrentMonth() {
@@ -70,6 +72,7 @@ export default function ReportsPage() {
   const [monthOptions] = useState(buildMonthOptions)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<string | null>(null)
+  const [expandedDate, setExpandedDate] = useState<string | null>(null)
 
   const fetchReport = async (m: string) => {
     setLoading(true)
@@ -124,11 +127,12 @@ export default function ReportsPage() {
     })
 
     lines.push("")
-    lines.push("Tanggal;Generate;Pendapatan")
+    lines.push("Tanggal;Terjual;Pendapatan;Kode Voucher")
     Object.entries(byDate)
       .sort((a, b) => (a[0] < b[0] ? 1 : -1))
       .forEach(([date, info]: any) => {
-        lines.push(date + ";" + info.count + ";" + (info.revenue || 0))
+        const codes = (info.items || []).map((it: any) => it.username).join(" | ")
+        lines.push(date + ";" + info.count + ";" + (info.revenue || 0) + ";" + codes)
       })
 
     const csv = "\uFEFF" + lines.join("\n")
@@ -348,38 +352,83 @@ export default function ReportsPage() {
 
             <div className="bg-surface rounded-xl border border-line overflow-hidden">
               <div className="px-5 py-4 border-b border-line">
-                <h3 className="font-semibold text-text-primary text-sm">Per Tanggal</h3>
+                <h3 className="font-semibold text-text-primary text-sm">Penjualan per Tanggal</h3>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Berdasarkan tanggal voucher terpakai — tap baris untuk lihat kode vouchernya
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-paper border-b border-line">
                     <tr>
+                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary w-8"></th>
                       <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Tanggal</th>
-                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Generate</th>
+                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Terjual</th>
                       <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Pendapatan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.keys(byDate).length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="px-4 py-8 text-center text-text-muted">
-                          Belum ada data
+                        <td colSpan={4} className="px-4 py-8 text-center text-text-muted">
+                          Belum ada voucher terjual bulan ini
                         </td>
                       </tr>
                     ) : (
                       Object.entries(byDate)
                         .sort((a, b) => (a[0] < b[0] ? 1 : -1))
-                        .map(([date, info]: any) => (
-                          <tr key={date} className="border-b border-line last:border-0 hover:bg-paper/60">
-                            <td className="px-4 py-2.5 text-text-primary text-xs sm:text-sm">
-                              {formatDateLabel(date)}
-                            </td>
-                            <td className="px-4 py-2.5 font-mono text-text-secondary">{info.count}</td>
-                            <td className="px-4 py-2.5 font-mono font-medium text-signal-dark">
-                              Rp {(info.revenue || 0).toLocaleString("id-ID")}
-                            </td>
-                          </tr>
-                        ))
+                        .map(([date, info]: any) => {
+                          const isOpen = expandedDate === date
+                          return (
+                            <Fragment key={date}>
+                              <tr
+                                onClick={() => setExpandedDate(isOpen ? null : date)}
+                                className="border-b border-line last:border-0 hover:bg-paper/60 cursor-pointer"
+                              >
+                                <td className="px-4 py-2.5 text-text-muted">
+                                  {isOpen ? (
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <ChevronRight className="w-3.5 h-3.5" />
+                                  )}
+                                </td>
+                                <td className="px-4 py-2.5 text-text-primary text-xs sm:text-sm">
+                                  {formatDateLabel(date)}
+                                </td>
+                                <td className="px-4 py-2.5 font-mono text-text-secondary">
+                                  {info.count}
+                                </td>
+                                <td className="px-4 py-2.5 font-mono font-medium text-signal-dark">
+                                  Rp {(info.revenue || 0).toLocaleString("id-ID")}
+                                </td>
+                              </tr>
+                              {isOpen && (
+                                <tr className="bg-paper/60 border-b border-line last:border-0">
+                                  <td colSpan={4} className="px-4 py-3">
+                                    <div className="space-y-1.5">
+                                      {(info.items || []).map((it: any, idx: number) => (
+                                        <div
+                                          key={idx}
+                                          className="flex items-center justify-between text-xs bg-surface border border-line rounded-lg px-3 py-1.5"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="font-mono font-medium text-text-primary truncate">
+                                              {it.username}
+                                            </span>
+                                            <span className="text-text-muted">{it.profile_name}</span>
+                                          </div>
+                                          <span className="font-mono text-signal-dark flex-shrink-0">
+                                            Rp {(it.price || 0).toLocaleString("id-ID")}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </Fragment>
+                          )
+                        })
                     )}
                   </tbody>
                 </table>
