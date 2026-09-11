@@ -64,19 +64,22 @@ export default function PrintPage() {
 
   return (
     <div>
-      <div className="no-print p-4 bg-gray-100 flex gap-3">
+      <div className="no-print p-4 bg-paper flex items-center gap-3 sticky top-0 border-b border-line">
         <button
           onClick={() => window.print()}
-          className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-lg text-sm font-medium"
+          className="bg-signal hover:bg-signal-dark text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
           Print Voucher
         </button>
         <button
           onClick={() => window.history.back()}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg text-sm font-medium"
+          className="bg-surface border border-line hover:border-signal/40 text-text-primary px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
           Kembali
         </button>
+        <span className="text-xs text-text-muted ml-auto hidden sm:inline">
+          {vouchers.length} voucher siap dicetak
+        </span>
       </div>
 
       <div className="print-area p-2">
@@ -127,7 +130,7 @@ export default function PrintPage() {
                       style={{
                         fontWeight: "bold",
                         fontSize: "12px",
-                        color: "#7C5CFC",
+                        color: "#0F9E97",
                         marginBottom: "3px",
                       }}
                     >

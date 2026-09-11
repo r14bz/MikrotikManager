@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, Lock } from "lucide-react"
+import { Loader2, Wifi, AlertCircle } from "lucide-react"
 
 function LoginForm() {
   const router = useRouter()
@@ -42,60 +42,65 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl border shadow-sm p-6">
-        <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-violet-600 text-white flex items-center justify-center mb-3">
-            <Lock className="w-6 h-6" />
+    <div className="min-h-screen bg-ink flex items-center justify-center p-5">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-7">
+          <div className="w-12 h-12 rounded-xl bg-signal/15 flex items-center justify-center mb-4">
+            <Wifi className="w-6 h-6 text-signal" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Admin Login</h1>
-          <p className="text-sm text-gray-500 mt-1">MAMANAIY Hotspot Manager</p>
+          <h1 className="text-white font-semibold text-lg">MAMANAIY Hotspot Manager</h1>
+          <p className="text-white/40 text-sm mt-1">Masuk untuk mengelola jaringan</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-              autoComplete="username"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          {error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              {error}
+        <div className="bg-surface rounded-2xl p-6">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full border border-line rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-signal/40 focus:border-signal"
+                autoComplete="username"
+                required
+              />
             </div>
-          ) : null}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            {loading ? "Masuk..." : "Masuk"}
-          </button>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-line rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-signal/40 focus:border-signal"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+
+            {error ? (
+              <div className="flex items-start gap-2 bg-danger-soft text-danger rounded-lg p-3 text-sm">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-signal hover:bg-signal-dark disabled:opacity-60 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {loading ? "Masuk..." : "Masuk"}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-white/25 text-xs mt-6">© 2026 MAMANAIY.NET</p>
       </div>
     </div>
   )
@@ -105,7 +110,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-500">
+        <div className="min-h-screen bg-ink flex items-center justify-center text-white/40 text-sm">
           Loading...
         </div>
       }

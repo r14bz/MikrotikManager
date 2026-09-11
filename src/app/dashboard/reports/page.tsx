@@ -10,6 +10,7 @@ import {
   Loader2,
   RefreshCw,
   Download,
+  Upload,
 } from "lucide-react"
 
 function getCurrentMonth() {
@@ -141,110 +142,116 @@ export default function ReportsPage() {
   }
 
   const handleImportMikhmon = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0]
-  if (!file) return
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  setImporting(true)
-  setImportResult(null)
+    setImporting(true)
+    setImportResult(null)
 
-  try {
-    const form = new FormData()
-    form.append("file", file)
+    try {
+      const form = new FormData()
+      form.append("file", file)
 
-    const res = await fetch("/api/reports/import-mikhmon", {
-      method: "POST",
-      body: form,
-    })
+      const res = await fetch("/api/reports/import-mikhmon", {
+        method: "POST",
+        body: form,
+      })
 
-    const contentType = res.headers.get("content-type") || ""
-    if (!contentType.includes("application/json")) {
-      const text = await res.text()
-      console.error("Non-JSON response:", text.slice(0, 300))
-      setImportResult(
-        "Gagal: API import tidak ditemukan atau error server (status " +
-          res.status +
-          "). Pastikan file route sudah di-deploy."
-      )
-      return
+      const contentType = res.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await res.text()
+        console.error("Non-JSON response:", text.slice(0, 300))
+        setImportResult(
+          "Gagal: API import tidak ditemukan atau error server (status " +
+            res.status +
+            "). Pastikan file route sudah di-deploy."
+        )
+        return
+      }
+
+      const json = await res.json()
+
+      if (json.success) {
+        setImportResult(
+          "Berhasil import " +
+            json.inserted +
+            " dari " +
+            json.totalParsed +
+            " baris" +
+            (json.errorCount ? " (" + json.errorCount + " error)" : "")
+        )
+        fetchReport(month)
+      } else {
+        setImportResult("Gagal: " + (json.message || "unknown"))
+      }
+    } catch (err: any) {
+      setImportResult("Error: " + (err.message || "gagal upload"))
+    } finally {
+      setImporting(false)
+      e.target.value = ""
     }
-
-    const json = await res.json()
-
-    if (json.success) {
-      setImportResult(
-        "Berhasil import " +
-          json.inserted +
-          " dari " +
-          json.totalParsed +
-          " baris" +
-          (json.errorCount ? " (" + json.errorCount + " error)" : "")
-      )
-      fetchReport(month)
-    } else {
-      setImportResult("Gagal: " + (json.message || "unknown"))
-    }
-  } catch (err: any) {
-    setImportResult("Error: " + (err.message || "gagal upload"))
-  } finally {
-    setImporting(false)
-    e.target.value = ""
   }
-}
+
+  const statCards = [
+    { label: "Total Generate", value: summary.totalGenerated || 0, icon: Ticket, mono: true },
+    { label: "Sudah Dipakai", value: summary.totalUsed || 0, icon: CheckCircle, mono: true },
+    { label: "Belum Dipakai", value: summary.totalUnused || 0, icon: Clock, mono: true },
+    {
+      label: "Pendapatan",
+      value: "Rp " + (summary.totalRevenue || 0).toLocaleString("id-ID"),
+      icon: DollarSign,
+      mono: true,
+      highlight: true,
+    },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Laporan Penjualan</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Ringkasan generate & pemakaian voucher
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <select
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+          className="border border-line rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-signal/40 focus:border-signal flex-1 sm:flex-none"
+        >
+          {monthOptions.map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
+          ))}
+        </select>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <select
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-          >
-            {monthOptions.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-
+        <div className="flex items-center gap-2">
           <button
             onClick={() => fetchReport(month)}
             disabled={loading}
-            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white px-3 py-2 rounded-lg text-sm"
+            className="flex items-center gap-1.5 bg-surface border border-line hover:border-signal/40 disabled:opacity-60 text-text-primary px-3 py-2 rounded-lg text-sm flex-shrink-0"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
           <button
             onClick={handleExportCSV}
             disabled={!data}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white px-3 py-2 rounded-lg text-sm"
+            className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-50 text-white px-3 py-2 rounded-lg text-sm flex-shrink-0"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
 
-          <label className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm cursor-pointer">
+          <label className="flex items-center gap-1.5 bg-ink hover:bg-ink-soft text-white px-3 py-2 rounded-lg text-sm cursor-pointer flex-shrink-0">
             {importing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Importing...
-              </>
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              "Import Mikhmon CSV"
+              <Upload className="w-4 h-4" />
             )}
+            <span className="hidden sm:inline">
+              {importing ? "Importing..." : "Import CSV"}
+            </span>
             <input
               type="file"
               accept=".csv,text/csv"
@@ -257,100 +264,79 @@ export default function ReportsPage() {
       </div>
 
       {importResult && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-3 text-sm">
+        <div className="bg-signal-soft border border-signal/20 text-signal-dark rounded-xl p-3 text-sm">
           {importResult}
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+        <div className="bg-danger-soft border border-danger/20 text-danger rounded-xl p-4 text-sm">
           {error}
         </div>
       )}
 
       {loading && !data ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+          <Loader2 className="w-7 h-7 animate-spin text-signal" />
         </div>
       ) : (
         data && (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex items-start gap-3">
-                <div className="bg-violet-600 p-2.5 rounded-lg text-white">
-                  <Ticket className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Total Generate</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {summary.totalGenerated || 0}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {statCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={
+                    "rounded-xl border p-4 " +
+                    (card.highlight
+                      ? "bg-ink border-ink text-white"
+                      : "bg-surface border-line")
+                  }
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <card.icon
+                      className={"w-3.5 h-3.5 " + (card.highlight ? "text-signal" : "text-signal")}
+                    />
+                    <p className={"text-xs " + (card.highlight ? "text-white/60" : "text-text-secondary")}>
+                      {card.label}
+                    </p>
+                  </div>
+                  <p
+                    className={
+                      "text-xl font-semibold font-mono " +
+                      (card.highlight ? "text-white" : "text-text-primary")
+                    }
+                  >
+                    {card.value}
                   </p>
                 </div>
-              </div>
-
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex items-start gap-3">
-                <div className="bg-green-500 p-2.5 rounded-lg text-white">
-                  <CheckCircle className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Sudah Dipakai</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {summary.totalUsed || 0}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex items-start gap-3">
-                <div className="bg-blue-500 p-2.5 rounded-lg text-white">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Belum Dipakai</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    {summary.totalUnused || 0}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border shadow-sm p-4 flex items-start gap-3">
-                <div className="bg-orange-500 p-2.5 rounded-lg text-white">
-                  <DollarSign className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Pendapatan</p>
-                  <p className="text-xl font-bold text-gray-800">
-                    Rp {(summary.totalRevenue || 0).toLocaleString("id-ID")}
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="bg-white rounded-xl border shadow-sm">
-              <div className="px-5 py-4 border-b">
-                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-violet-600" />
+            <div className="bg-surface rounded-xl border border-line">
+              <div className="px-5 py-4 border-b border-line">
+                <h3 className="font-semibold text-text-primary flex items-center gap-2 text-sm">
+                  <BarChart3 className="w-4 h-4 text-signal" />
                   Berdasarkan Profile
                 </h3>
               </div>
               <div className="p-5">
                 {Object.keys(byProfile).length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-6">
-                    Belum ada data
-                  </p>
+                  <p className="text-text-muted text-sm text-center py-6">Belum ada data</p>
                 ) : (
                   <div className="space-y-3">
                     {Object.entries(byProfile).map(([name, info]: any) => (
                       <div
                         key={name}
-                        className="flex items-center justify-between py-2 border-b last:border-0"
+                        className="flex items-center justify-between py-2 border-b border-line last:border-0"
                       >
                         <div>
-                          <p className="font-medium text-gray-800">{name}</p>
-                          <p className="text-xs text-gray-500">
-                            {info.count} generate • {info.used} dipakai
+                          <p className="font-medium text-text-primary text-sm">{name}</p>
+                          <p className="text-xs text-text-secondary font-mono">
+                            {info.count} generate · {info.used} dipakai
                           </p>
                         </div>
-                        <p className="font-semibold text-violet-600">
+                        <p className="font-mono font-semibold text-signal-dark">
                           Rp {(info.revenue || 0).toLocaleString("id-ID")}
                         </p>
                       </div>
@@ -360,32 +346,23 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border shadow-sm">
-              <div className="px-5 py-4 border-b">
-                <h3 className="font-semibold text-gray-800">Per Tanggal</h3>
+            <div className="bg-surface rounded-xl border border-line overflow-hidden">
+              <div className="px-5 py-4 border-b border-line">
+                <h3 className="font-semibold text-text-primary text-sm">Per Tanggal</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-paper border-b border-line">
                     <tr>
-                      <th className="text-left px-4 py-2.5 font-medium text-gray-600">
-                        Tanggal
-                      </th>
-                      <th className="text-left px-4 py-2.5 font-medium text-gray-600">
-                        Generate
-                      </th>
-                      <th className="text-left px-4 py-2.5 font-medium text-gray-600">
-                        Pendapatan
-                      </th>
+                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Tanggal</th>
+                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Generate</th>
+                      <th className="text-left px-4 py-2.5 font-medium text-text-secondary">Pendapatan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Object.keys(byDate).length === 0 ? (
                       <tr>
-                        <td
-                          colSpan={3}
-                          className="px-4 py-8 text-center text-gray-400"
-                        >
+                        <td colSpan={3} className="px-4 py-8 text-center text-text-muted">
                           Belum ada data
                         </td>
                       </tr>
@@ -393,14 +370,12 @@ export default function ReportsPage() {
                       Object.entries(byDate)
                         .sort((a, b) => (a[0] < b[0] ? 1 : -1))
                         .map(([date, info]: any) => (
-                          <tr key={date} className="border-b hover:bg-gray-50">
-                            <td className="px-4 py-2.5 text-gray-700">
+                          <tr key={date} className="border-b border-line last:border-0 hover:bg-paper/60">
+                            <td className="px-4 py-2.5 text-text-primary text-xs sm:text-sm">
                               {formatDateLabel(date)}
                             </td>
-                            <td className="px-4 py-2.5 text-gray-600">
-                              {info.count}
-                            </td>
-                            <td className="px-4 py-2.5 font-medium text-violet-600">
+                            <td className="px-4 py-2.5 font-mono text-text-secondary">{info.count}</td>
+                            <td className="px-4 py-2.5 font-mono font-medium text-signal-dark">
                               Rp {(info.revenue || 0).toLocaleString("id-ID")}
                             </td>
                           </tr>

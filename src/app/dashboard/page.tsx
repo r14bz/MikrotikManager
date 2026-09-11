@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import {
-  Activity,
   RefreshCw,
   Loader2,
   Server,
@@ -10,6 +9,7 @@ import {
   HardDrive,
   Wifi,
   Users,
+  Cpu,
 } from "lucide-react"
 
 export default function DashboardPage() {
@@ -45,43 +45,52 @@ export default function DashboardPage() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-7 h-7 animate-spin text-signal" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500 text-xs mt-0.5">
-            {data?.identity || "MikroTik"} • {data?.version || ""} • Uptime: {data?.uptime || "-"}
-          </p>
+    <div className="space-y-4">
+      {/* Meta row */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          {data ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="relative flex h-2 w-2 flex-shrink-0">
+                <span className="signal-dot absolute inline-flex h-2 w-2 rounded-full bg-signal" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-signal" />
+              </span>
+              <span className="font-medium text-text-primary truncate">{data.identity}</span>
+              <span className="text-text-muted hidden sm:inline">
+                · RouterOS {data.version} · up {data.uptime}
+              </span>
+            </div>
+          ) : (
+            <p className="text-sm text-text-secondary">Menghubungkan ke MikroTik…</p>
+          )}
         </div>
         <button
           onClick={fetchData}
           disabled={loading}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-surface border border-line hover:border-signal/40 disabled:opacity-60 text-text-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           )}
           Refresh
         </button>
       </div>
 
-      {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 flex items-start gap-3 text-sm">
+        <div className="bg-danger-soft border border-danger/20 text-danger rounded-xl p-3.5 flex items-start gap-3 text-sm">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-medium">Gagal terhubung ke MikroTik</p>
-            <p className="text-xs mt-0.5">{error}</p>
+            <p className="text-xs mt-0.5 opacity-90">{error}</p>
           </div>
         </div>
       )}
@@ -90,86 +99,74 @@ export default function DashboardPage() {
         <>
           {/* Row 1: System Info + Resource Usage */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* System Info */}
-            <div className="bg-white rounded-xl border shadow-sm p-4">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
-                <Server className="w-4 h-4 text-violet-600" />
+            <div className="bg-surface rounded-xl border border-line p-4">
+              <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
+                <Server className="w-4 h-4 text-signal" />
                 System Info
               </h3>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Identity</span>
-                  <span className="font-medium text-gray-800">{data.identity}</span>
+              <dl className="space-y-2 text-xs">
+                {[
+                  ["Identity", data.identity],
+                  ["Model", data.model],
+                  ["RouterOS", data.version],
+                  ["Architecture", data.architecture],
+                  ["Serial", data.serial],
+                  ["Firmware", data.firmware],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-3">
+                    <dt className="text-text-secondary">{label}</dt>
+                    <dd className="font-mono text-text-primary text-right truncate">{value}</dd>
+                  </div>
+                ))}
+                <div className="flex justify-between gap-3">
+                  <dt className="text-text-secondary">CPU</dt>
+                  <dd className="font-mono text-text-primary text-right">
+                    {data.cpuCount} core · {data.cpuFrequency}MHz · {data.cpu}%
+                  </dd>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Model</span>
-                  <span className="font-medium text-gray-800">{data.model}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">RouterOS</span>
-                  <span className="font-medium text-gray-800">{data.version}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Architecture</span>
-                  <span className="font-medium text-gray-800">{data.architecture}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Serial</span>
-                  <span className="font-medium text-gray-800">{data.serial}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Firmware</span>
-                  <span className="font-medium text-gray-800">{data.firmware}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">CPU</span>
-                  <span className="font-medium text-gray-800">
-                    {data.cpuCount} core • {data.cpuFrequency} MHz • {data.cpu}%
-                  </span>
-                </div>
-              </div>
+              </dl>
             </div>
 
-            {/* Resource Usage */}
-            <div className="bg-white rounded-xl border shadow-sm p-4">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
-                <HardDrive className="w-4 h-4 text-violet-600" />
+            <div className="bg-surface rounded-xl border border-line p-4">
+              <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
+                <HardDrive className="w-4 h-4 text-signal" />
                 Resource Usage
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">Memory</span>
-                    <span className="text-gray-800 font-medium">
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-text-secondary">Memory</span>
+                    <span className="font-mono text-text-primary">
                       {data.memory?.used} / {data.memory?.total} ({data.memory?.percent}%)
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-paper rounded-full h-1.5">
                     <div
-                      className="bg-violet-600 h-2 rounded-full"
+                      className="bg-signal h-1.5 rounded-full transition-all"
                       style={{ width: `${data.memory?.percent || 0}%` }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">HDD / Storage</span>
-                    <span className="text-gray-800 font-medium">
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-text-secondary">HDD / Storage</span>
+                    <span className="font-mono text-text-primary">
                       {data.hdd?.used} / {data.hdd?.total} ({data.hdd?.percent}%)
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-paper rounded-full h-1.5">
                     <div
-                      className="bg-orange-500 h-2 rounded-full"
+                      className="bg-amber h-1.5 rounded-full transition-all"
                       style={{ width: `${data.hdd?.percent || 0}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="pt-1 text-xs text-gray-500">
-                  Uptime: <span className="font-medium text-gray-700">{data.uptime}</span>
+                <div className="flex items-center gap-1.5 pt-1 text-xs text-text-secondary">
+                  <Cpu className="w-3.5 h-3.5" />
+                  Uptime <span className="font-mono text-text-primary">{data.uptime}</span>
                 </div>
               </div>
             </div>
@@ -177,64 +174,64 @@ export default function DashboardPage() {
 
           {/* Row 2: Traffic + User Online */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Traffic Internet */}
-            <div className="bg-white rounded-xl border shadow-sm p-4">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
-                <Wifi className="w-4 h-4 text-violet-600" />
+            <div className="bg-surface rounded-xl border border-line p-4">
+              <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
+                <Wifi className="w-4 h-4 text-signal" />
                 Traffic Internet
               </h3>
-              <div className="space-y-1.5 text-xs">
+              <dl className="space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Interface</span>
-                  <span className="font-medium text-gray-800">{data.traffic?.interface}</span>
+                  <dt className="text-text-secondary">Interface</dt>
+                  <dd className="font-mono text-text-primary">{data.traffic?.interface}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Download (RX)</span>
-                  <span className="font-medium text-green-600">{data.traffic?.rx}</span>
+                  <dt className="text-text-secondary">Download (RX)</dt>
+                  <dd className="font-mono text-signal font-medium">{data.traffic?.rx}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Upload (TX)</span>
-                  <span className="font-medium text-blue-600">{data.traffic?.tx}</span>
+                  <dt className="text-text-secondary">Upload (TX)</dt>
+                  <dd className="font-mono text-text-primary font-medium">{data.traffic?.tx}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">RX Packets</span>
-                  <span className="font-medium text-gray-800">{data.traffic?.rxPackets}</span>
+                  <dt className="text-text-secondary">RX Packets</dt>
+                  <dd className="font-mono text-text-primary">{data.traffic?.rxPackets}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">TX Packets</span>
-                  <span className="font-medium text-gray-800">{data.traffic?.txPackets}</span>
+                  <dt className="text-text-secondary">TX Packets</dt>
+                  <dd className="font-mono text-text-primary">{data.traffic?.txPackets}</dd>
                 </div>
-              </div>
+              </dl>
             </div>
 
-            {/* User Online */}
-            <div className="bg-white rounded-xl border shadow-sm">
-              <div className="px-4 py-3 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4 text-violet-600" />
+            <div className="bg-surface rounded-xl border border-line overflow-hidden">
+              <div className="px-4 py-3 border-b border-line flex items-center justify-between">
+                <h3 className="font-semibold text-text-primary flex items-center gap-2 text-sm">
+                  <Users className="w-4 h-4 text-signal" />
                   User Online
                 </h3>
-                <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-signal-soft text-signal-dark px-2 py-0.5 rounded-full font-mono font-medium">
                   {data.activeUsers}
                 </span>
               </div>
-              <div className="p-3 max-h-48 overflow-y-auto">
+              <div className="p-3 max-h-48 overflow-y-auto thin-scroll">
                 {data.users?.length === 0 ? (
-                  <p className="text-gray-400 text-xs text-center py-6">
+                  <p className="text-text-muted text-xs text-center py-6">
                     Tidak ada user online
                   </p>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {data.users.map((u: any, i: number) => (
                       <div
                         key={i}
-                        className="flex justify-between items-center text-xs py-1.5 border-b last:border-0"
+                        className="flex justify-between items-center text-xs py-1.5 border-b border-line last:border-0"
                       >
-                        <div>
-                          <p className="font-medium text-gray-800">{u.user}</p>
-                          <p className="text-[10px] text-gray-400">{u.address}</p>
+                        <div className="min-w-0">
+                          <p className="font-medium text-text-primary truncate">{u.user}</p>
+                          <p className="text-[10px] font-mono text-text-muted">{u.address}</p>
                         </div>
-                        <span className="text-gray-500">{u.uptime}</span>
+                        <span className="font-mono text-text-secondary flex-shrink-0 ml-2">
+                          {u.uptime}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -244,47 +241,56 @@ export default function DashboardPage() {
           </div>
 
           {/* Logs */}
-          <div className="bg-white rounded-xl border shadow-sm">
-            <div className="px-4 py-3 border-b">
-              <h3 className="font-semibold text-gray-800 text-sm">Log Terbaru</h3>
+          <div className="bg-surface rounded-xl border border-line overflow-hidden">
+            <div className="px-4 py-3 border-b border-line">
+              <h3 className="font-semibold text-text-primary text-sm">Log Terbaru</h3>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-paper border-b border-line">
                   <tr>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-24">
-                      Waktu
-                    </th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-28">
-                      Topics
-                    </th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600">
-                      Pesan
-                    </th>
+                    <th className="text-left px-4 py-2 font-medium text-text-secondary w-24">Waktu</th>
+                    <th className="text-left px-4 py-2 font-medium text-text-secondary w-28">Topics</th>
+                    <th className="text-left px-4 py-2 font-medium text-text-secondary">Pesan</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.logs?.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-3 py-6 text-center text-gray-400">
+                      <td colSpan={3} className="px-4 py-6 text-center text-text-muted">
                         Tidak ada log
                       </td>
                     </tr>
                   ) : (
                     data.logs.map((log: any, i: number) => (
-                      <tr key={i} className="border-b hover:bg-gray-50">
-                        <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">
-                          {log.time}
-                        </td>
-                        <td className="px-3 py-1.5 text-violet-600">
-                          {log.topics}
-                        </td>
-                        <td className="px-3 py-1.5 text-gray-700">{log.message}</td>
+                      <tr key={i} className="border-b border-line last:border-0 hover:bg-paper/60">
+                        <td className="px-4 py-2 font-mono text-text-muted whitespace-nowrap">{log.time}</td>
+                        <td className="px-4 py-2 font-mono text-signal-dark">{log.topics}</td>
+                        <td className="px-4 py-2 text-text-primary">{log.message}</td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden divide-y divide-line">
+              {data.logs?.length === 0 ? (
+                <p className="px-4 py-6 text-center text-text-muted text-xs">Tidak ada log</p>
+              ) : (
+                data.logs.map((log: any, i: number) => (
+                  <div key={i} className="px-4 py-2.5 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-mono text-signal-dark">{log.topics}</span>
+                      <span className="font-mono text-text-muted">{log.time}</span>
+                    </div>
+                    <p className="text-text-primary">{log.message}</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </>

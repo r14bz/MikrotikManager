@@ -48,96 +48,120 @@ export default function UsersPage() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">User Aktif</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Daftar user yang sedang terhubung ke hotspot
-          </p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm">
+          <Users className="w-4 h-4 text-signal" />
+          <span className="text-text-secondary">
+            Online: <strong className="font-mono text-text-primary">{users.length}</strong>
+          </span>
+          {lastUpdate && (
+            <span className="hidden sm:inline text-text-muted">· update {lastUpdate}</span>
+          )}
         </div>
 
         <button
           onClick={fetchUsers}
           disabled={loading}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           )}
           Refresh
         </button>
       </div>
 
-      {/* Info */}
-      <div className="flex items-center gap-4 text-sm text-gray-500">
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          <span>
-            Total Online: <strong className="text-gray-800">{users.length}</strong>
-          </span>
-        </div>
-        {lastUpdate && <span>Update terakhir: {lastUpdate}</span>}
-      </div>
-
-      {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 flex items-start gap-3">
-          <WifiOff className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div className="bg-danger-soft border border-danger/20 text-danger rounded-xl p-3.5 flex items-start gap-3 text-sm">
+          <WifiOff className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-medium">Tidak dapat terhubung ke MikroTik</p>
-            <p className="text-sm mt-1">{error}</p>
-            <p className="text-sm mt-2 text-red-600">
+            <p className="text-xs mt-0.5 opacity-90">{error}</p>
+            <p className="text-xs mt-1.5 opacity-75">
               Pastikan MikroTik online dan koneksi VPN ke router aktif.
             </p>
           </div>
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-surface rounded-xl border border-line overflow-hidden">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-paper border-b border-line">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Username</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">IP Address</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">MAC Address</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Uptime</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Download</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Upload</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Username</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">IP Address</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">MAC Address</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Uptime</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Download</th>
+                <th className="text-left px-4 py-3 font-medium text-text-secondary">Upload</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                  <td colSpan={6} className="px-4 py-12 text-center text-text-muted">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
                     Mengambil data...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-text-muted">
                     {error ? "Tidak ada data" : "Tidak ada user yang sedang online"}
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{user.user}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.address}</td>
-                    <td className="px-4 py-3 text-gray-600 font-mono text-xs">{user.mac}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.uptime}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.bytesIn}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.bytesOut}</td>
+                  <tr key={user.id} className="border-b border-line last:border-0 hover:bg-paper/60">
+                    <td className="px-4 py-3 font-medium text-text-primary">{user.user}</td>
+                    <td className="px-4 py-3 font-mono text-text-secondary">{user.address}</td>
+                    <td className="px-4 py-3 font-mono text-text-muted text-xs">{user.mac}</td>
+                    <td className="px-4 py-3 font-mono text-text-secondary">{user.uptime}</td>
+                    <td className="px-4 py-3 font-mono text-signal-dark">{user.bytesIn}</td>
+                    <td className="px-4 py-3 font-mono text-text-secondary">{user.bytesOut}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="px-4 py-12 text-center text-text-muted text-sm">
+              <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+              Mengambil data...
+            </div>
+          ) : users.length === 0 ? (
+            <div className="px-4 py-12 text-center text-text-muted text-sm">
+              {error ? "Tidak ada data" : "Tidak ada user yang sedang online"}
+            </div>
+          ) : (
+            <div className="divide-y divide-line">
+              {users.map((user) => (
+                <div key={user.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-medium text-text-primary text-sm">{user.user}</span>
+                    <span className="font-mono text-text-secondary text-xs">{user.uptime}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono text-text-muted">{user.address}</span>
+                    <span className="font-mono text-text-muted">{user.mac}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs mt-1.5">
+                    <span className="font-mono text-signal-dark">↓ {user.bytesIn}</span>
+                    <span className="font-mono text-text-secondary">↑ {user.bytesOut}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

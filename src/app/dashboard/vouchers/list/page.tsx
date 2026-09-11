@@ -27,6 +27,20 @@ type Voucher = {
   comment?: string
 }
 
+const statusLabel: Record<string, string> = {
+  online: "Online",
+  used: "Terpakai",
+  disabled: "Nonaktif",
+  unused: "Belum Dipakai",
+}
+
+const statusClass: Record<string, string> = {
+  online: "bg-signal-soft text-signal-dark",
+  used: "bg-paper text-text-secondary",
+  disabled: "bg-danger-soft text-danger",
+  unused: "bg-amber-soft text-amber",
+}
+
 export default function VoucherListPage() {
   const router = useRouter()
   const [vouchers, setVouchers] = useState<Voucher[]>([])
@@ -224,61 +238,89 @@ export default function VoucherListPage() {
     }
   }
 
-  const statusColor = (s: string) => {
-    if (s === "online") return "bg-blue-100 text-blue-700"
-    if (s === "used") return "bg-green-100 text-green-700"
-    if (s === "disabled") return "bg-red-100 text-red-700"
-    return "bg-gray-100 text-gray-600"
-  }
+  const inputClass =
+    "border border-line rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-signal/40 focus:border-signal"
+
+  const ActionButtons = ({ v }: { v: Voucher }) => (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => handlePrintOne(v)}
+        className="p-1.5 text-text-secondary hover:bg-paper rounded-md"
+        title="Print"
+      >
+        <Printer className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => handleToggle(v)}
+        disabled={actionLoading}
+        className={
+          "p-1.5 rounded-md " +
+          (v.status === "disabled"
+            ? "text-signal hover:bg-signal-soft"
+            : "text-amber hover:bg-amber-soft")
+        }
+        title={v.status === "disabled" ? "Enable" : "Disable"}
+      >
+        {v.status === "disabled" ? (
+          <CheckCircle className="w-4 h-4" />
+        ) : (
+          <Ban className="w-4 h-4" />
+        )}
+      </button>
+      <button
+        onClick={() => handleDelete([v.id])}
+        disabled={actionLoading}
+        className="p-1.5 text-danger hover:bg-danger-soft rounded-md"
+        title="Hapus"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  )
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Kelola Voucher</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Data langsung dari MikroTik
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-text-secondary">Data langsung dari MikroTik</p>
         <button
           onClick={fetchVouchers}
           disabled={loading}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white px-3 py-2 rounded-lg text-sm"
+          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           )}
           Sync
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border shadow-sm p-4 space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari username..."
-                className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-            >
-              Cari
-            </button>
-          </form>
+      <div className="bg-surface rounded-xl border border-line p-4 space-y-3">
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari username..."
+              className={`${inputClass} w-full pl-9`}
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-ink hover:bg-ink-soft text-white px-4 py-2 rounded-lg text-sm font-medium flex-shrink-0"
+          >
+            Cari
+          </button>
+        </form>
 
+        <div className="flex gap-2">
           <select
             value={profile}
             onChange={(e) => setProfile(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className={`${inputClass} flex-1 min-w-0`}
           >
             <option value="all">Semua Profile</option>
             {profileOptions.map((p) => (
@@ -291,25 +333,25 @@ export default function VoucherListPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className={`${inputClass} flex-1 min-w-0`}
           >
             <option value="all">Semua Status</option>
-            <option value="unused">Unused</option>
-            <option value="used">Used</option>
+            <option value="unused">Belum Dipakai</option>
+            <option value="used">Terpakai</option>
             <option value="online">Online</option>
-            <option value="disabled">Disabled</option>
+            <option value="disabled">Nonaktif</option>
           </select>
         </div>
 
         {selected.length > 0 && (
-          <div className="flex items-center gap-2 pt-2 border-t">
-            <span className="text-sm text-gray-600">
-              {selected.length} dipilih
+          <div className="flex items-center gap-2 pt-2 border-t border-line">
+            <span className="text-sm text-text-secondary">
+              <span className="font-mono">{selected.length}</span> dipilih
             </span>
             <button
               onClick={handlePrintSelected}
               disabled={actionLoading}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm"
+              className="flex items-center gap-1.5 bg-ink hover:bg-ink-soft text-white px-3 py-1.5 rounded-lg text-sm"
             >
               <Printer className="w-4 h-4" />
               Print
@@ -317,7 +359,7 @@ export default function VoucherListPage() {
             <button
               onClick={() => handleDelete()}
               disabled={actionLoading}
-              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm"
+              className="flex items-center gap-1.5 bg-danger hover:opacity-90 text-white px-3 py-1.5 rounded-lg text-sm"
             >
               <Trash2 className="w-4 h-4" />
               Hapus
@@ -326,129 +368,81 @@ export default function VoucherListPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-surface rounded-xl border border-line overflow-hidden">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-paper border-b border-line">
               <tr>
                 <th className="px-3 py-3 w-10">
-                  <button onClick={toggleSelectAll} className="text-gray-500">
+                  <button onClick={toggleSelectAll} className="text-text-muted">
                     {selected.length === vouchers.length && vouchers.length > 0 ? (
-                      <CheckSquare className="w-4 h-4 text-violet-600" />
+                      <CheckSquare className="w-4 h-4 text-signal" />
                     ) : (
                       <Square className="w-4 h-4" />
                     )}
                   </button>
                 </th>
-                <th className="text-left px-3 py-3 font-medium text-gray-600">
-                  Username
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-gray-600">
-                  Profile
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-gray-600">
-                  Harga
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-gray-600">
-                  Status
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-gray-600">
-                  Uptime
-                </th>
-                <th className="text-right px-3 py-3 font-medium text-gray-600">
-                  Aksi
-                </th>
+                <th className="text-left px-3 py-3 font-medium text-text-secondary">Username</th>
+                <th className="text-left px-3 py-3 font-medium text-text-secondary">Profile</th>
+                <th className="text-left px-3 py-3 font-medium text-text-secondary">Harga</th>
+                <th className="text-left px-3 py-3 font-medium text-text-secondary">Status</th>
+                <th className="text-left px-3 py-3 font-medium text-text-secondary">Uptime</th>
+                <th className="text-right px-3 py-3 font-medium text-text-secondary">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                  <td colSpan={7} className="px-4 py-12 text-center text-text-muted">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
                     Mengambil data dari MikroTik...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-red-500">
+                  <td colSpan={7} className="px-4 py-12 text-center text-danger">
                     {error}
                   </td>
                 </tr>
               ) : vouchers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <td colSpan={7} className="px-4 py-12 text-center text-text-muted">
+                    <Ticket className="w-7 h-7 mx-auto mb-2 opacity-40" />
                     Tidak ada voucher di MikroTik
                   </td>
                 </tr>
               ) : (
                 vouchers.map((v) => (
-                  <tr key={v.id} className="border-b hover:bg-gray-50">
+                  <tr key={v.id} className="border-b border-line last:border-0 hover:bg-paper/60">
                     <td className="px-3 py-3">
                       <button onClick={() => toggleSelect(v.id)}>
                         {selected.includes(v.id) ? (
-                          <CheckSquare className="w-4 h-4 text-violet-600" />
+                          <CheckSquare className="w-4 h-4 text-signal" />
                         ) : (
-                          <Square className="w-4 h-4 text-gray-400" />
+                          <Square className="w-4 h-4 text-text-muted" />
                         )}
                       </button>
                     </td>
-                    <td className="px-3 py-3 font-mono font-medium text-gray-800">
-                      {v.username}
-                    </td>
-                    <td className="px-3 py-3 text-gray-600">{v.profile_name}</td>
-                    <td className="px-3 py-3 text-gray-600">
-                      {v.price ? "Rp " + v.price.toLocaleString("id-ID") : "Gratis"}
+                    <td className="px-3 py-3 font-mono font-medium text-text-primary">{v.username}</td>
+                    <td className="px-3 py-3 text-text-secondary">{v.profile_name}</td>
+                    <td className="px-3 py-3 font-mono text-text-secondary">
+                      {v.price ? "Rp" + v.price.toLocaleString("id-ID") : "Gratis"}
                     </td>
                     <td className="px-3 py-3">
                       <span
                         className={
                           "inline-block px-2.5 py-0.5 rounded-full text-xs font-medium " +
-                          statusColor(v.status)
+                          (statusClass[v.status] || "bg-paper text-text-secondary")
                         }
                       >
-                        {v.status}
+                        {statusLabel[v.status] || v.status}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-gray-500 text-xs">
-                      {v.uptime || "-"}
-                    </td>
+                    <td className="px-3 py-3 font-mono text-text-muted text-xs">{v.uptime || "-"}</td>
                     <td className="px-3 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handlePrintOne(v)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Print"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleToggle(v)}
-                          disabled={actionLoading}
-                          className={
-                            "p-1.5 rounded " +
-                            (v.status === "disabled"
-                              ? "text-green-600 hover:bg-green-50"
-                              : "text-orange-600 hover:bg-orange-50")
-                          }
-                          title={v.status === "disabled" ? "Enable" : "Disable"}
-                        >
-                          {v.status === "disabled" ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : (
-                            <Ban className="w-4 h-4" />
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete([v.id])}
-                          disabled={actionLoading}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="flex justify-end">
+                        <ActionButtons v={v} />
                       </div>
                     </td>
                   </tr>
@@ -456,6 +450,79 @@ export default function VoucherListPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="px-4 py-12 text-center text-text-muted text-sm">
+              <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+              Mengambil data dari MikroTik...
+            </div>
+          ) : error ? (
+            <div className="px-4 py-12 text-center text-danger text-sm">{error}</div>
+          ) : vouchers.length === 0 ? (
+            <div className="px-4 py-12 text-center text-text-muted text-sm">
+              <Ticket className="w-7 h-7 mx-auto mb-2 opacity-40" />
+              Tidak ada voucher di MikroTik
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={toggleSelectAll}
+                className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-line text-xs text-text-secondary"
+              >
+                {selected.length === vouchers.length && vouchers.length > 0 ? (
+                  <CheckSquare className="w-4 h-4 text-signal" />
+                ) : (
+                  <Square className="w-4 h-4 text-text-muted" />
+                )}
+                Pilih semua
+              </button>
+              <div className="divide-y divide-line">
+                {vouchers.map((v) => (
+                  <div key={v.id} className="px-4 py-3">
+                    <div className="flex items-start gap-3">
+                      <button onClick={() => toggleSelect(v.id)} className="mt-0.5 flex-shrink-0">
+                        {selected.includes(v.id) ? (
+                          <CheckSquare className="w-4 h-4 text-signal" />
+                        ) : (
+                          <Square className="w-4 h-4 text-text-muted" />
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono font-medium text-text-primary text-sm truncate">
+                            {v.username}
+                          </span>
+                          <span
+                            className={
+                              "flex-shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium " +
+                              (statusClass[v.status] || "bg-paper text-text-secondary")
+                            }
+                          >
+                            {statusLabel[v.status] || v.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-text-secondary mt-1">
+                          <span>{v.profile_name}</span>
+                          <span className="font-mono">
+                            {v.price ? "Rp" + v.price.toLocaleString("id-ID") : "Gratis"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="font-mono text-[11px] text-text-muted">
+                            {v.uptime ? "up " + v.uptime : "-"}
+                          </span>
+                          <ActionButtons v={v} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

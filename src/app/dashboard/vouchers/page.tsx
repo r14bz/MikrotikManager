@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ticket, Loader2, CheckCircle2, AlertCircle, Printer } from "lucide-react"
+import { Ticket, Loader2, CheckCircle2, AlertCircle, Printer, RefreshCw } from "lucide-react"
 import { getPriceForProfile } from "@/lib/settings"
 
 type Profile = {
@@ -111,51 +111,51 @@ export default function VouchersPage() {
     router.push("/print")
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Generate Voucher</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Buat kode voucher massal sesuai profile yang ada di MikroTik
-        </p>
-      </div>
+  const inputClass =
+    "w-full border border-line rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-signal/40 focus:border-signal"
+  const labelClass = "block text-sm font-medium text-text-primary mb-1.5"
 
-      <div className="bg-white rounded-xl border shadow-sm p-6 max-w-xl">
+  return (
+    <div className="space-y-5 max-w-xl">
+      <p className="text-sm text-text-secondary">
+        Buat kode voucher massal sesuai profile yang ada di MikroTik.
+      </p>
+
+      <div className="bg-surface rounded-xl border border-line p-5">
         <div className="space-y-5">
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-medium text-gray-700">
-                Profile Hotspot (dari MikroTik)
-              </label>
+              <label className={labelClass}>Profile Hotspot</label>
               <button
                 type="button"
                 onClick={fetchProfiles}
                 disabled={profilesLoading}
-                className="text-xs text-violet-600 hover:underline"
+                className="flex items-center gap-1 text-xs text-signal hover:text-signal-dark font-medium"
               >
-                {profilesLoading ? "Memuat..." : "Refresh"}
+                <RefreshCw className={"w-3 h-3 " + (profilesLoading ? "animate-spin" : "")} />
+                Refresh
               </button>
             </div>
 
             {profilesLoading ? (
-              <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
+              <div className="flex items-center gap-2 text-sm text-text-muted py-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Mengambil profile dari MikroTik...
               </div>
             ) : profilesError ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+              <div className="bg-danger-soft border border-danger/20 text-danger rounded-lg p-3 text-sm">
                 {profilesError}
-                <p className="text-xs mt-1">Pastikan MikroTik online, lalu klik Refresh.</p>
+                <p className="text-xs mt-1 opacity-80">Pastikan MikroTik online, lalu klik Refresh.</p>
               </div>
             ) : profiles.length === 0 ? (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-3 text-sm">
+              <div className="bg-amber-soft border border-amber/20 text-amber rounded-lg p-3 text-sm">
                 Tidak ada profile hotspot di MikroTik.
               </div>
             ) : (
               <select
                 value={profile}
                 onChange={(e) => handleProfileChange(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className={inputClass}
               >
                 <option value="">-- Pilih Profile --</option>
                 {profiles.map((p) => (
@@ -169,44 +169,39 @@ export default function VouchersPage() {
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Jumlah Voucher
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={50}
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Jumlah</label>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Prefix</label>
+              <input
+                type="text"
+                value={prefix}
+                onChange={(e) => setPrefix(e.target.value.toUpperCase())}
+                placeholder="Contoh: VIP"
+                className={`${inputClass} font-mono`}
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Prefix (opsional)
-            </label>
-            <input
-              type="text"
-              value={prefix}
-              onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-              placeholder="Contoh: A, B, VIP"
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Harga Jual (Rp)
-            </label>
+            <label className={labelClass}>Harga Jual (Rp)</label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
-              className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className={`${inputClass} font-mono`}
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-text-muted mt-1.5">
               Otomatis dari Pengaturan (bisa diubah manual)
             </p>
           </div>
@@ -214,7 +209,7 @@ export default function VouchersPage() {
           <button
             onClick={handleGenerate}
             disabled={loading || !profile || profilesLoading || !!profilesError}
-            className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-signal hover:bg-signal-dark disabled:opacity-50 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
           >
             {loading ? (
               <>
@@ -232,10 +227,10 @@ export default function VouchersPage() {
           {result && (
             <div
               className={
-                "p-4 rounded-lg text-sm " +
+                "p-4 rounded-lg text-sm border " +
                 (result.success
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200")
+                  ? "bg-signal-soft text-signal-dark border-signal/20"
+                  : "bg-danger-soft text-danger border-danger/20")
               }
             >
               <div className="flex items-start gap-3">
@@ -247,7 +242,9 @@ export default function VouchersPage() {
                 <div className="flex-1">
                   <p className="font-medium">{result.message}</p>
                   {result.count ? (
-                    <p className="mt-1">Berhasil membuat {result.count} voucher</p>
+                    <p className="mt-1">
+                      Berhasil membuat <span className="font-mono">{result.count}</span> voucher
+                    </p>
                   ) : null}
                 </div>
               </div>
@@ -255,7 +252,7 @@ export default function VouchersPage() {
               {result.success && result.vouchers ? (
                 <button
                   onClick={handlePrint}
-                  className="mt-4 w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2"
+                  className="mt-4 w-full bg-signal hover:bg-signal-dark text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2"
                 >
                   <Printer className="w-4 h-4" />
                   Print Voucher ({result.count})
