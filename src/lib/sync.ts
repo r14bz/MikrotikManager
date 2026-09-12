@@ -91,12 +91,20 @@ export async function syncVouchersFromMikrotik() {
       }
     }
 
-    for (const v of list) {
+    // Bangun semua payload dulu, baru kirim SATU KALI sebagai batch upsert.
+    // Sebelumnya ini upsert satu-per-satu per voucher (bisa ratusan request
+    // berurutan) — jadi sangat lambat dan gampang timeout saat dipanggil
+    // dari cron. `used_at` SELALU disertakan (walau null) di tiap baris,
+    // supaya semua objek dalam satu batch punya kolom yang sama persis —
+    // kalau tidak, PostgREST bisa menganggap baris yang tidak menyertakan
+    // kolom itu sebagai NULL dan menimpa used_at yang sudah benar.
+    const payloads = list.map((v) => {
       const existing = existingByUsername.get(v.username)
       const wasAlreadyUsed =
         existing?.status === "used" || existing?.status === "online" || !!existing?.used_at
+      const isUsedNow = v.status === "used" || v.status === "online"
 
-      const payload: any = {
+      return {
         username: v.username,
         password: v.password,
         profile_name: v.profile_name,
@@ -105,14 +113,19 @@ export async function syncVouchersFromMikrotik() {
         limit_uptime: v.limit_uptime,
         status: v.status === "online" ? "used" : v.status,
         comment: v.comment,
+        used_at:
+          isUsedNow && !wasAlreadyUsed
+            ? new Date().toISOString()
+            : existing?.used_at ?? null,
       }
+    })
 
-      const isUsedNow = v.status === "used" || v.status === "online"
-      if (isUsedNow && !wasAlreadyUsed) {
-        payload.used_at = new Date().toISOString()
-      }
+    if (payloads.length > 0) {
+      const { error } = await supabase
+        .from("vouchers")
+        .upsert(payloads, { onConflict: "username" })
 
-      await supabase.from("vouchers").upsert(payload, { onConflict: "username" })
+      if (error) throw error
     }
 
     synced = true

@@ -23,3 +23,8 @@ create table if not exists app_settings (
 
 insert into app_settings (id) values (1)
 on conflict (id) do nothing;
+
+-- Matikan RLS untuk app_settings — konsisten dengan tabel vouchers yang
+-- juga tidak pakai RLS. Keamanan akses aplikasi ini sepenuhnya dari
+-- login admin (cookie session), bukan dari Supabase Auth/RLS.
+alter table app_settings disable row level security;
