@@ -1,3 +1,8 @@
+// Sumber kebenaran pengaturan aplikasi sekarang ada di Supabase
+// (tabel app_settings), bukan localStorage — supaya API route di server
+// (generate voucher, sync MikroTik, print) bisa baca harga & identitas
+// brand yang SAMA dengan yang diatur admin di halaman Pengaturan.
+
 export type AppSettings = {
   brandName: string
   waNumber: string
@@ -5,6 +10,8 @@ export type AppSettings = {
   prices: Record<string, number>
 }
 
+// Dipakai sebagai fallback kalau baris settings belum ada di database,
+// atau saat fetch ke /api/settings gagal (mis. offline sesaat).
 export const defaultSettings: AppSettings = {
   brandName: "MAMANAIY.NET",
   waNumber: "085212551180",
@@ -21,34 +28,15 @@ export const defaultSettings: AppSettings = {
   },
 }
 
-export function getSettings(): AppSettings {
-  if (typeof window === "undefined") return defaultSettings
+// Cari harga untuk sebuah profile. Exact match dulu, kalau tidak ada
+// baru coba cocokkan sebagian nama (mis. profile "TRIAL-USER-2" tetap
+// kena harga "TRIAL-USER").
+export function resolvePrice(profile: string, prices: Record<string, number>): number {
+  if (!profile) return 0
+  if (prices[profile] !== undefined) return prices[profile]
 
-  try {
-    const raw = localStorage.getItem("app_settings")
-    if (!raw) return defaultSettings
-    const parsed = JSON.parse(raw)
-    return {
-      ...defaultSettings,
-      ...parsed,
-      prices: {
-        ...defaultSettings.prices,
-        ...(parsed.prices || {}),
-      },
-    }
-  } catch {
-    return defaultSettings
-  }
-}
-
-export function getPriceForProfile(profile: string): number {
-  const settings = getSettings()
-  if (settings.prices[profile] !== undefined) {
-    return settings.prices[profile]
-  }
-
-  const key = Object.keys(settings.prices).find((k) =>
+  const key = Object.keys(prices).find((k) =>
     profile.toLowerCase().includes(k.toLowerCase())
   )
-  return key ? settings.prices[key] : 0
+  return key ? prices[key] : 0
 }

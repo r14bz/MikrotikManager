@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { QRCodeSVG } from "qrcode.react"
-import { getSettings } from "@/lib/settings"
+import { defaultSettings } from "@/lib/settings"
 
 type Voucher = {
   username: string
@@ -14,13 +14,23 @@ type Voucher = {
 
 export default function PrintPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([])
-  const [brandName, setBrandName] = useState("MAMANAIY.NET")
-  const [waNumber, setWaNumber] = useState("085212551180")
+  const [brandName, setBrandName] = useState(defaultSettings.brandName)
+  const [waNumber, setWaNumber] = useState(defaultSettings.waNumber)
 
   useEffect(() => {
-    const settings = getSettings()
-    setBrandName(settings.brandName || "MAMANAIY.NET")
-    setWaNumber(settings.waNumber || "085212551180")
+    const loadBrand = async () => {
+      try {
+        const res = await fetch("/api/settings")
+        const json = await res.json()
+        if (json.success && json.data) {
+          setBrandName(json.data.brandName || defaultSettings.brandName)
+          setWaNumber(json.data.waNumber || defaultSettings.waNumber)
+        }
+      } catch {
+        // pakai default
+      }
+    }
+    loadBrand()
 
     const saved = localStorage.getItem("print_vouchers")
     if (saved) {

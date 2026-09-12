@@ -2,34 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { Save, Loader2, CheckCircle2, KeyRound, AlertCircle } from "lucide-react"
-
-type Settings = {
-  brandName: string
-  waNumber: string
-  wifiName: string
-  prices: Record<string, number>
-}
-
-const defaultSettings: Settings = {
-  brandName: "MAMANAIY.NET",
-  waNumber: "085212551180",
-  wifiName: "MAMANAIY.NET",
-  prices: {
-    "2jam/2k": 2000,
-    "5jam/3rb": 3000,
-    "10jam/5rb": 5000,
-    "24jam/10rb": 10000,
-    "MINGGUAN": 30000,
-    "BULANAN": 50000,
-    "TRIAL-USER": 0,
-    "default": 0,
-  },
-}
+import { defaultSettings, AppSettings } from "@/lib/settings"
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings)
+  const [loadingSettings, setLoadingSettings] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -39,32 +19,44 @@ export default function SettingsPage() {
   const [pwdError, setPwdError] = useState("")
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("app_settings")
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        setSettings({
-          ...defaultSettings,
-          ...parsed,
-          prices: {
-            ...defaultSettings.prices,
-            ...(parsed.prices || {}),
-          },
-        })
+    const loadSettings = async () => {
+      setLoadingSettings(true)
+      setLoadError(false)
+      try {
+        const res = await fetch("/api/settings")
+        const json = await res.json()
+        if (json.success) {
+          setSettings(json.data)
+        } else {
+          setLoadError(true)
+        }
+      } catch (e) {
+        setLoadError(true)
+      } finally {
+        setLoadingSettings(false)
       }
-    } catch (e) {
-      console.error(e)
     }
+    loadSettings()
   }, [])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true)
     setSaved(false)
 
     try {
-      localStorage.setItem("app_settings", JSON.stringify(settings))
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      })
+      const json = await res.json()
+
+      if (json.success) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2500)
+      } else {
+        alert(json.message || "Gagal menyimpan pengaturan")
+      }
     } catch (e) {
       alert("Gagal menyimpan pengaturan")
     } finally {
@@ -137,6 +129,17 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 max-w-2xl">
+      {loadingSettings ? (
+        <div className="flex items-center gap-2 text-sm text-text-muted py-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Memuat pengaturan...
+        </div>
+      ) : loadError ? (
+        <div className="bg-danger-soft border border-danger/20 text-danger rounded-xl p-3 text-sm">
+          Gagal memuat pengaturan dari server, menampilkan nilai default. Perubahan tetap bisa disimpan.
+        </div>
+      ) : null}
+
       <div className="bg-surface rounded-xl border border-line p-5 space-y-4">
         <h3 className="font-semibold text-text-primary text-sm">Identitas</h3>
 

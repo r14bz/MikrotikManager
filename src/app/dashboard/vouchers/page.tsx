@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Ticket, Loader2, CheckCircle2, AlertCircle, Printer, RefreshCw } from "lucide-react"
-import { getPriceForProfile } from "@/lib/settings"
+import { resolvePrice, defaultSettings } from "@/lib/settings"
 
 type Profile = {
   name: string
@@ -31,6 +31,7 @@ export default function VouchersPage() {
   const [prefix, setPrefix] = useState("")
   const [profile, setProfile] = useState("")
   const [price, setPrice] = useState(0)
+  const [prices, setPrices] = useState<Record<string, number>>(defaultSettings.prices)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{
     success: boolean
@@ -39,7 +40,7 @@ export default function VouchersPage() {
     vouchers?: GeneratedVoucher[]
   } | null>(null)
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = async (priceMap: Record<string, number>) => {
     setProfilesLoading(true)
     setProfilesError(null)
 
@@ -53,7 +54,7 @@ export default function VouchersPage() {
           const first = json.data[0].name
           if (!profile) {
             setProfile(first)
-            setPrice(getPriceForProfile(first))
+            setPrice(resolvePrice(first, priceMap))
           }
         }
       } else {
@@ -69,12 +70,26 @@ export default function VouchersPage() {
   }
 
   useEffect(() => {
-    fetchProfiles()
+    const init = async () => {
+      let priceMap = defaultSettings.prices
+      try {
+        const res = await fetch("/api/settings")
+        const json = await res.json()
+        if (json.success && json.data?.prices) {
+          priceMap = json.data.prices
+          setPrices(priceMap)
+        }
+      } catch {
+        // pakai default
+      }
+      fetchProfiles(priceMap)
+    }
+    init()
   }, [])
 
   const handleProfileChange = (name: string) => {
     setProfile(name)
-    setPrice(getPriceForProfile(name))
+    setPrice(resolvePrice(name, prices))
   }
 
   const handleGenerate = async () => {
@@ -128,7 +143,7 @@ export default function VouchersPage() {
               <label className={labelClass}>Profile Hotspot</label>
               <button
                 type="button"
-                onClick={fetchProfiles}
+                onClick={() => fetchProfiles(prices)}
                 disabled={profilesLoading}
                 className="flex items-center gap-1 text-xs text-signal hover:text-signal-dark font-medium"
               >
