@@ -2,7 +2,8 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, Wifi, AlertCircle } from "lucide-react"
+import Image from "next/image"
+import { Loader2, AlertCircle } from "lucide-react"
 
 function LoginForm() {
   const router = useRouter()
@@ -45,10 +46,14 @@ function LoginForm() {
     <div className="min-h-screen bg-ink flex items-center justify-center p-5">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-7">
-          <div className="w-12 h-12 rounded-xl bg-signal/15 flex items-center justify-center mb-4">
-            <Wifi className="w-6 h-6 text-signal" />
-          </div>
-          <h1 className="text-white font-semibold text-lg">MAMANAIY Hotspot Manager</h1>
+          <Image
+            src="/logo/logo-white.png"
+            alt="MAMANAIY.NET"
+            width={220}
+            height={70}
+            className="mb-5"
+            priority
+          />
           <p className="text-white/40 text-sm mt-1">Masuk untuk mengelola jaringan</p>
         </div>
 

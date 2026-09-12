@@ -2,6 +2,7 @@
 
 import LogoutButton from "@/components/LogoutButton"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   ListChecks,
   BarChart3,
   Settings,
-  Wifi,
 } from "lucide-react"
 
 const menu = [
@@ -40,12 +40,10 @@ export default function DashboardLayout({
       {/* Sidebar — desktop only */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-ink text-white">
         <div className="px-5 py-5 flex items-center gap-3 border-b border-ink-line">
-          <div className="w-9 h-9 rounded-lg bg-signal/15 flex items-center justify-center">
-            <Wifi className="w-5 h-5 text-signal" />
-          </div>
+          <Image src="/logo/mark.png" alt="MAMANAIY.NET" width={36} height={34} />
           <div>
             <p className="font-semibold text-[15px] leading-tight">MAMANAIY</p>
-            <p className="text-[11px] text-white/45">Hotspot Manager</p>
+            <p className="text-[11px] text-white/45">.NET Hotspot Manager</p>
           </div>
         </div>
 
@@ -81,8 +79,8 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-20 bg-ink md:bg-surface md:border-b md:border-line">
           <div className="flex items-center justify-between px-4 md:px-6 py-3.5">
             <div className="flex items-center gap-2.5 md:gap-0">
-              <div className="w-7 h-7 rounded-md bg-signal/15 flex items-center justify-center md:hidden">
-                <Wifi className="w-4 h-4 text-signal" />
+              <div className="w-7 h-7 flex items-center justify-center md:hidden">
+                <Image src="/logo/mark.png" alt="MAMANAIY.NET" width={26} height={24} />
               </div>
               <h1 className="text-[15px] font-semibold text-white md:text-text-primary md:text-lg">
                 {current?.name || "Dashboard"}
