@@ -48,9 +48,9 @@ function LoginForm() {
         <div className="flex flex-col items-center mb-7">
           <Image
             src="/logo/logo-white.png"
-            alt="MAMANAIY.NET"
-            width={220}
-            height={70}
+            alt="MikroTik Hotspot Manager"
+            width={200}
+            height={96}
             className="mb-5"
             priority
           />

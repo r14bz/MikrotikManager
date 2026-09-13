@@ -68,8 +68,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="px-5 py-5 flex items-center gap-3 border-b border-ink-line">
           <Image src="/logo/mark.png" alt="MAMANAIY.NET" width={36} height={34} />
           <div>
-            <p className="font-semibold text-[15px] leading-tight">MAMANAIY</p>
-            <p className="text-[11px] text-white/45">.NET Hotspot Manager</p>
+            <p className="font-semibold text-[15px] leading-tight">MikroTik</p>
+            <p className="text-[11px] text-white/45">Hotspot Manager</p>
           </div>
         </div>
 
