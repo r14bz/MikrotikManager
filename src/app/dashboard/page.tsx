@@ -11,18 +11,21 @@ import {
   Users,
   Cpu,
 } from "lucide-react"
+import { useActiveRouter } from "@/lib/router-context"
 
 export default function DashboardPage() {
+  const { activeRouterId } = useActiveRouter()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = async () => {
+    if (!activeRouterId) return
     setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch("/api/mikrotik/dashboard")
+      const res = await fetch(`/api/mikrotik/dashboard?router_id=${activeRouterId}`)
       const json = await res.json()
 
       if (json.success) {
@@ -38,10 +41,11 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    setData(null)
     fetchData()
     const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [activeRouterId])
 
   if (loading && !data) {
     return (

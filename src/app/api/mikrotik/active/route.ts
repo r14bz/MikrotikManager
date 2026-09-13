@@ -1,9 +1,18 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { withMikrotik } from "@/lib/mikrotik"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const routerId = req.nextUrl.searchParams.get("router_id")
+  if (!routerId) {
+    return NextResponse.json(
+      { success: false, message: "router_id wajib disertakan", data: [] },
+      { status: 400 }
+    )
+  }
+
   try {
     const activeUsers = await withMikrotik(
+      routerId,
       (conn) => conn.write("/ip/hotspot/active/print"),
       20
     )
@@ -37,9 +46,9 @@ export async function GET() {
 }
 
 function formatBytes(bytes: number) {
-  if (bytes === 0) return "0 B"
+  if (!bytes || bytes === 0) return "0 B"
   const k = 1024
-  const sizes = ["B", "KB", "MB", "GB"]
+  const sizes = ["B", "KB", "MB", "GB", "TB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
 }

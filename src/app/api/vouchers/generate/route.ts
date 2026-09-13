@@ -26,7 +26,7 @@ const durationMap: Record<string, string> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { quantity, prefix, profile, price } = body
+    const { quantity, prefix, profile, price, router_id } = body
 
     if (!quantity || !profile) {
       return NextResponse.json(
@@ -35,10 +35,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (!router_id) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
+        { status: 400 }
+      )
+    }
+
     // 1. Wajib connect ke MikroTik
     let conn: Awaited<ReturnType<typeof getMikrotikConnection>>
     try {
-      conn = await getMikrotikConnection(15)
+      conn = await getMikrotikConnection(router_id, 15)
     } catch (err: any) {
       return NextResponse.json(
         {
@@ -107,6 +114,7 @@ export async function POST(req: NextRequest) {
       const { data: batch } = await supabase
         .from("voucher_batches")
         .insert({
+          router_id,
           profile_name: profile,
           quantity: codes.length,
           prefix: prefix || null,
@@ -116,6 +124,7 @@ export async function POST(req: NextRequest) {
         .single()
 
       const rows = codes.map((code) => ({
+        router_id,
         batch_id: batch?.id || null,
         username: code,
         password: code,

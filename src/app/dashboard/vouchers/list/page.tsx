@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useActiveRouter } from "@/lib/router-context"
 import {
   Search,
   Loader2,
@@ -46,6 +47,7 @@ const statusClass: Record<string, string> = {
 
 export default function VoucherListPage() {
   const router = useRouter()
+  const { activeRouterId } = useActiveRouter()
   const [vouchers, setVouchers] = useState<Voucher[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -71,11 +73,12 @@ export default function VoucherListPage() {
   ]
 
   const fetchVouchers = async () => {
+    if (!activeRouterId) return
     setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch("/api/mikrotik/vouchers")
+      const res = await fetch(`/api/mikrotik/vouchers?router_id=${activeRouterId}`)
       const json = await res.json()
 
       if (json.success) {
@@ -107,7 +110,7 @@ export default function VoucherListPage() {
 
   useEffect(() => {
     fetchVouchers()
-  }, [status, profile])
+  }, [status, profile, activeRouterId])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -190,7 +193,7 @@ export default function VoucherListPage() {
       const res = await fetch("/api/vouchers/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: targetIds, usernames }),
+        body: JSON.stringify({ ids: targetIds, usernames, router_id: activeRouterId }),
       })
 
       const contentType = res.headers.get("content-type") || ""
@@ -230,6 +233,7 @@ export default function VoucherListPage() {
         body: JSON.stringify({
           username: v.username,
           disabled: willDisable,
+          router_id: activeRouterId,
         }),
       })
       const json = await res.json()
@@ -268,7 +272,7 @@ export default function VoucherListPage() {
       const res = await fetch("/api/vouchers/update-price", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: v.username, price: newPrice }),
+        body: JSON.stringify({ username: v.username, price: newPrice, router_id: activeRouterId }),
       })
       const json = await res.json()
 

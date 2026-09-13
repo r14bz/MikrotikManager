@@ -1,9 +1,18 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { withMikrotik } from "@/lib/mikrotik"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const routerId = req.nextUrl.searchParams.get("router_id")
+  if (!routerId) {
+    return NextResponse.json(
+      { success: false, message: "router_id wajib disertakan", data: [] },
+      { status: 400 }
+    )
+  }
+
   try {
     const profiles = await withMikrotik(
+      routerId,
       (conn) => conn.write("/ip/hotspot/user/profile/print"),
       12
     )

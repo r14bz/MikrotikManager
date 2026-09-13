@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Ticket, Loader2, CheckCircle2, AlertCircle, Printer, RefreshCw } from "lucide-react"
 import { resolvePrice, defaultSettings } from "@/lib/settings"
+import { useActiveRouter } from "@/lib/router-context"
 
 type Profile = {
   name: string
@@ -23,6 +24,7 @@ type GeneratedVoucher = {
 
 export default function VouchersPage() {
   const router = useRouter()
+  const { activeRouterId } = useActiveRouter()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [profilesLoading, setProfilesLoading] = useState(true)
   const [profilesError, setProfilesError] = useState<string | null>(null)
@@ -41,21 +43,20 @@ export default function VouchersPage() {
   } | null>(null)
 
   const fetchProfiles = async (priceMap: Record<string, number>) => {
+    if (!activeRouterId) return
     setProfilesLoading(true)
     setProfilesError(null)
 
     try {
-      const res = await fetch("/api/mikrotik/profiles")
+      const res = await fetch(`/api/mikrotik/profiles?router_id=${activeRouterId}`)
       const json = await res.json()
 
       if (json.success) {
         setProfiles(json.data || [])
         if (json.data && json.data.length > 0) {
           const first = json.data[0].name
-          if (!profile) {
-            setProfile(first)
-            setPrice(resolvePrice(first, priceMap))
-          }
+          setProfile(first)
+          setPrice(resolvePrice(first, priceMap))
         }
       } else {
         setProfilesError(json.message || "Gagal memuat profile")
@@ -70,10 +71,11 @@ export default function VouchersPage() {
   }
 
   useEffect(() => {
+    if (!activeRouterId) return
     const init = async () => {
       let priceMap = defaultSettings.prices
       try {
-        const res = await fetch("/api/settings")
+        const res = await fetch(`/api/settings?router_id=${activeRouterId}`)
         const json = await res.json()
         if (json.success && json.data?.prices) {
           priceMap = json.data.prices
@@ -85,7 +87,7 @@ export default function VouchersPage() {
       fetchProfiles(priceMap)
     }
     init()
-  }, [])
+  }, [activeRouterId])
 
   const handleProfileChange = (name: string) => {
     setProfile(name)
@@ -105,7 +107,7 @@ export default function VouchersPage() {
       const res = await fetch("/api/vouchers/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity, prefix, profile, price }),
+        body: JSON.stringify({ quantity, prefix, profile, price, router_id: activeRouterId }),
       })
 
       const data = await res.json()

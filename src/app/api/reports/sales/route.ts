@@ -4,7 +4,15 @@ import { createClient } from "@/lib/supabase/server"
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
+    const routerId = searchParams.get("router_id")
     let month = searchParams.get("month") // diharapkan: 2026-09
+
+    if (!routerId) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
+        { status: 400 }
+      )
+    }
 
     // Validasi format YYYY-MM
     if (month && !/^\d{4}-\d{2}$/.test(month)) {
@@ -33,6 +41,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase
       .from("vouchers")
       .select("id, username, profile_name, price, status, created_at, sold_at, used_at")
+      .eq("router_id", routerId)
       .or(
         `and(created_at.gte.${start},created_at.lt.${end}),` +
           `and(used_at.gte.${start},used_at.lt.${end})`

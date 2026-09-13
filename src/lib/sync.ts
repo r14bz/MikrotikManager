@@ -2,11 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { withMikrotik } from "@/lib/mikrotik"
 import { defaultSettings, resolvePrice } from "@/lib/settings"
 
-// Dipakai bersama oleh /api/mikrotik/vouchers (dipanggil browser saat buka
-// halaman Kelola Voucher) dan /api/cron/sync (dipanggil scheduler otomatis),
-// supaya logikanya cuma ada di satu tempat.
-export async function syncVouchersFromMikrotik() {
-  const { users, active } = await withMikrotik(async (conn) => {
+// Sync satu router tertentu. Dipakai oleh /api/mikrotik/vouchers (browser,
+// untuk router yang sedang aktif dipilih) dan /api/cron/sync (loop semua router).
+export async function syncVouchersFromMikrotik(routerId: string) {
+  const { users, active } = await withMikrotik(routerId, async (conn) => {
     const [users, active] = await Promise.all([
       conn.write("/ip/hotspot/user/print"),
       conn.write("/ip/hotspot/active/print"),
@@ -16,15 +15,14 @@ export async function syncVouchersFromMikrotik() {
 
   const activeNames = new Set((active || []).map((u: any) => u.user || u.name))
 
-  // Ambil harga dari Supabase (diatur admin di halaman Pengaturan).
-  // Kalau baris settings belum ada / gagal diambil, fallback ke default.
+  // Harga diambil dari Supabase (diatur admin di Pengaturan) UNTUK ROUTER INI.
   let prices = defaultSettings.prices
   try {
     const supabase = await createClient()
     const { data: settingsRow } = await supabase
       .from("app_settings")
       .select("prices")
-      .eq("id", 1)
+      .eq("router_id", routerId)
       .maybeSingle()
 
     if (settingsRow?.prices) {
@@ -56,9 +54,6 @@ export async function syncVouchersFromMikrotik() {
       username,
       password: u.password || username,
       profile_name: profileName,
-      // Harga di sini cuma fallback saat sync otomatis. Voucher yang dibuat
-      // lewat halaman Generate sudah punya harga sendiri di Supabase dan
-      // TIDAK akan ketiban nilai ini (lihat logika "wasAlreadyUsed" di bawah).
       price: resolvePrice(profileName, prices),
       limit_uptime: u["limit-uptime"] || "",
       uptime,
@@ -84,6 +79,7 @@ export async function syncVouchersFromMikrotik() {
       const { data: existing } = await supabase
         .from("vouchers")
         .select("username, status, used_at, price")
+        .eq("router_id", routerId)
         .in("username", usernames)
 
       for (const row of existing || []) {
@@ -91,13 +87,6 @@ export async function syncVouchersFromMikrotik() {
       }
     }
 
-    // Bangun semua payload dulu, baru kirim SATU KALI sebagai batch upsert.
-    // Sebelumnya ini upsert satu-per-satu per voucher (bisa ratusan request
-    // berurutan) — jadi sangat lambat dan gampang timeout saat dipanggil
-    // dari cron. `used_at` SELALU disertakan (walau null) di tiap baris,
-    // supaya semua objek dalam satu batch punya kolom yang sama persis —
-    // kalau tidak, PostgREST bisa menganggap baris yang tidak menyertakan
-    // kolom itu sebagai NULL dan menimpa used_at yang sudah benar.
     const payloads = list.map((v) => {
       const existing = existingByUsername.get(v.username)
       const wasAlreadyUsed =
@@ -105,10 +94,10 @@ export async function syncVouchersFromMikrotik() {
       const isUsedNow = v.status === "used" || v.status === "online"
 
       return {
+        router_id: routerId,
         username: v.username,
         password: v.password,
         profile_name: v.profile_name,
-        // Jangan timpa harga yang sudah tercatat sebelumnya.
         price: existing?.price ?? v.price,
         limit_uptime: v.limit_uptime,
         status: v.status === "online" ? "used" : v.status,
@@ -123,7 +112,7 @@ export async function syncVouchersFromMikrotik() {
     if (payloads.length > 0) {
       const { error } = await supabase
         .from("vouchers")
-        .upsert(payloads, { onConflict: "username" })
+        .upsert(payloads, { onConflict: "router_id,username" })
 
       if (error) throw error
     }
@@ -134,4 +123,27 @@ export async function syncVouchersFromMikrotik() {
   }
 
   return { count: list.length, data: list, synced }
+}
+
+// Sync SEMUA router — dipakai oleh cron (tidak terikat "router yang lagi
+// dipilih di browser" karena cron jalan tanpa ada yang buka app).
+export async function syncAllRouters() {
+  const supabase = await createClient()
+  const { data: routers } = await supabase.from("routers").select("id, name")
+
+  const results = []
+  for (const router of routers || []) {
+    try {
+      const result = await syncVouchersFromMikrotik(router.id)
+      results.push({ routerId: router.id, name: router.name, ...result })
+    } catch (e: any) {
+      results.push({
+        routerId: router.id,
+        name: router.name,
+        synced: false,
+        error: e?.message || "gagal sync",
+      })
+    }
+  }
+  return results
 }

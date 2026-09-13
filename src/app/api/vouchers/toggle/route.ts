@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { username, disabled } = body
+    const { username, disabled, router_id } = body
 
     if (!username) {
       return NextResponse.json(
@@ -14,9 +14,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (!router_id) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
+        { status: 400 }
+      )
+    }
+
     let conn: Awaited<ReturnType<typeof getMikrotikConnection>>
     try {
-      conn = await getMikrotikConnection(12)
+      conn = await getMikrotikConnection(router_id, 12)
     } catch (err: any) {
       return NextResponse.json(
         {
@@ -64,6 +71,7 @@ export async function POST(req: NextRequest) {
       await supabase
         .from("vouchers")
         .update({ status: disabled ? "disabled" : "unused" })
+        .eq("router_id", router_id)
         .eq("username", username)
     } catch (e) {
       console.error("Supabase update failed:", e)

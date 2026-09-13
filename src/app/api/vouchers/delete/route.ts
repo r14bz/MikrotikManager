@@ -5,7 +5,7 @@ import { getMikrotikConnection } from "@/lib/mikrotik"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { usernames } = body
+    const { usernames, router_id } = body
 
     if (!usernames || usernames.length === 0) {
       return NextResponse.json(
@@ -14,10 +14,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (!router_id) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
+        { status: 400 }
+      )
+    }
+
     // 1. Hapus dari MikroTik (wajib)
     let conn: Awaited<ReturnType<typeof getMikrotikConnection>>
     try {
-      conn = await getMikrotikConnection(15)
+      conn = await getMikrotikConnection(router_id, 15)
     } catch (err: any) {
       return NextResponse.json(
         {
@@ -58,7 +65,11 @@ export async function POST(req: NextRequest) {
     // 2. Hapus dari Supabase (jika ada)
     try {
       const supabase = await createClient()
-      await supabase.from("vouchers").delete().in("username", usernames)
+      await supabase
+        .from("vouchers")
+        .delete()
+        .eq("router_id", router_id)
+        .in("username", usernames)
     } catch (e) {
       console.error("Supabase delete failed:", e)
     }

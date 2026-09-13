@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, Fragment } from "react"
+import { useActiveRouter } from "@/lib/router-context"
 import {
   BarChart3,
   DollarSign,
@@ -65,6 +66,7 @@ function formatDateLabel(value: string) {
 }
 
 export default function ReportsPage() {
+  const { activeRouterId } = useActiveRouter()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
@@ -75,11 +77,14 @@ export default function ReportsPage() {
   const [expandedDate, setExpandedDate] = useState<string | null>(null)
 
   const fetchReport = async (m: string) => {
+    if (!activeRouterId) return
     setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch("/api/reports/sales?month=" + encodeURIComponent(m))
+      const res = await fetch(
+        `/api/reports/sales?month=${encodeURIComponent(m)}&router_id=${activeRouterId}`
+      )
       const json = await res.json()
 
       if (json.success) {
@@ -96,7 +101,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReport(month)
-  }, [month])
+  }, [month, activeRouterId])
 
   const summary = data?.summary || {}
   const byProfile = data?.byProfile || {}
@@ -155,6 +160,7 @@ export default function ReportsPage() {
     try {
       const form = new FormData()
       form.append("file", file)
+      form.append("router_id", activeRouterId || "")
 
       const res = await fetch("/api/reports/import-mikhmon", {
         method: "POST",

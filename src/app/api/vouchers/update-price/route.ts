@@ -6,10 +6,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const username = (body.username || "").trim()
     const price = Number(body.price)
+    const routerId = body.router_id
 
     if (!username) {
       return NextResponse.json(
         { success: false, message: "Username wajib diisi" },
+        { status: 400 }
+      )
+    }
+
+    if (!routerId) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
         { status: 400 }
       )
     }
@@ -26,6 +34,7 @@ export async function POST(req: NextRequest) {
     const { error } = await supabase
       .from("vouchers")
       .update({ price })
+      .eq("router_id", routerId)
       .eq("username", username)
 
     if (error) {

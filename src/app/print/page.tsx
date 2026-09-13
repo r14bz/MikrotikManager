@@ -19,8 +19,10 @@ export default function PrintPage() {
 
   useEffect(() => {
     const loadBrand = async () => {
+      const routerId = localStorage.getItem("active_router_id")
+      if (!routerId) return
       try {
-        const res = await fetch("/api/settings")
+        const res = await fetch(`/api/settings?router_id=${routerId}`)
         const json = await res.json()
         if (json.success && json.data) {
           setBrandName(json.data.brandName || defaultSettings.brandName)

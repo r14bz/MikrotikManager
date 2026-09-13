@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Users, RefreshCw, WifiOff, Loader2 } from "lucide-react"
+import { useActiveRouter } from "@/lib/router-context"
 
 type ActiveUser = {
   id: string
@@ -15,17 +16,19 @@ type ActiveUser = {
 }
 
 export default function UsersPage() {
+  const { activeRouterId } = useActiveRouter()
   const [users, setUsers] = useState<ActiveUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<string>("")
 
   const fetchUsers = async () => {
+    if (!activeRouterId) return
     setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch("/api/mikrotik/active")
+      const res = await fetch(`/api/mikrotik/active?router_id=${activeRouterId}`)
       const data = await res.json()
 
       if (data.success) {
@@ -45,7 +48,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [activeRouterId])
 
   return (
     <div className="space-y-4">

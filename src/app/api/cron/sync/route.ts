@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { syncVouchersFromMikrotik } from "@/lib/sync"
+import { syncAllRouters } from "@/lib/sync"
 
-// Dipanggil oleh scheduler (Vercel Cron dan/atau cron eksternal gratis
-// seperti cron-job.org) supaya data voucher & status online tetap segar
-// walau tidak ada admin yang buka halaman Kelola Voucher.
-//
-// Dilindungi CRON_SECRET: request tanpa secret yang cocok ditolak, supaya
-// endpoint ini tidak bisa dipicu sembarang orang dari luar.
+// Sync SEMUA router yang terdaftar (bukan cuma satu) — dipanggil oleh
+// Vercel Cron dan/atau cron eksternal, tidak terikat router mana yang
+// sedang dipilih admin di browser.
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   const provided =
@@ -25,11 +22,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await syncVouchersFromMikrotik()
+    const results = await syncAllRouters()
     return NextResponse.json({
       success: true,
-      synced: result.synced,
-      count: result.count,
+      routers: results,
       time: new Date().toISOString(),
     })
   } catch (error: any) {

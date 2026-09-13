@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react"
 import { Save, Loader2, CheckCircle2, KeyRound, AlertCircle } from "lucide-react"
 import { defaultSettings, AppSettings } from "@/lib/settings"
+import { useActiveRouter } from "@/lib/router-context"
 
 export default function SettingsPage() {
+  const { activeRouterId, activeRouter } = useActiveRouter()
   const [settings, setSettings] = useState<AppSettings>(defaultSettings)
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -19,11 +21,12 @@ export default function SettingsPage() {
   const [pwdError, setPwdError] = useState("")
 
   useEffect(() => {
+    if (!activeRouterId) return
     const loadSettings = async () => {
       setLoadingSettings(true)
       setLoadError(false)
       try {
-        const res = await fetch("/api/settings")
+        const res = await fetch(`/api/settings?router_id=${activeRouterId}`)
         const json = await res.json()
         if (json.success) {
           setSettings(json.data)
@@ -37,7 +40,7 @@ export default function SettingsPage() {
       }
     }
     loadSettings()
-  }, [])
+  }, [activeRouterId])
 
   const handleSave = async () => {
     setSaving(true)
@@ -47,7 +50,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, router_id: activeRouterId }),
       })
       const json = await res.json()
 
@@ -129,6 +132,13 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 max-w-2xl">
+      {activeRouter && (
+        <p className="text-xs text-text-muted -mb-1">
+          Mengatur harga &amp; identitas untuk router:{" "}
+          <span className="font-medium text-text-secondary">{activeRouter.name}</span>
+        </p>
+      )}
+
       {loadingSettings ? (
         <div className="flex items-center gap-2 text-sm text-text-muted py-2">
           <Loader2 className="w-4 h-4 animate-spin" />

@@ -36,10 +36,18 @@ export async function POST(req: NextRequest) {
   try {
     const form = await req.formData()
     const file = form.get("file") as File | null
+    const routerId = form.get("router_id") as string | null
 
     if (!file) {
       return NextResponse.json(
         { success: false, message: "File CSV tidak ditemukan" },
+        { status: 400 }
+      )
+    }
+
+    if (!routerId) {
+      return NextResponse.json(
+        { success: false, message: "router_id wajib disertakan" },
         { status: 400 }
       )
     }
@@ -83,6 +91,7 @@ export async function POST(req: NextRequest) {
       }
 
       rows.push({
+        router_id: routerId,
         username,
         password: username,
         profile_name: profile || "unknown",
@@ -113,13 +122,13 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < rows.length; i += chunkSize) {
       const chunk = rows.slice(i, i + chunkSize)
       const { error } = await supabase.from("vouchers").upsert(chunk, {
-        onConflict: "username",
+        onConflict: "router_id,username",
       })
 
       if (error) {
         for (const row of chunk) {
           const { error: e2 } = await supabase.from("vouchers").upsert(row, {
-            onConflict: "username",
+            onConflict: "router_id,username",
           })
           if (!e2) inserted++
           else errors.push(row.username + ": " + e2.message)
