@@ -138,16 +138,24 @@ export default function PrintPage() {
                   </div>
 
                   <div style={{ flex: 1, padding: "8px 10px" }}>
-                    <div
-                      style={{
-                        fontWeight: "bold",
-                        fontSize: "12px",
-                        color: "#15803D",
-                        marginBottom: "3px",
-                      }}
-                    >
-                      {brandName}
-                    </div>
+                    {brandName.trim().toLowerCase() === "mamanaiy.net" ? (
+                      <img
+                        src="/logo/mamanaiy-wordmark.png"
+                        alt={brandName}
+                        style={{ height: "16px", marginBottom: "4px", display: "block" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "12px",
+                          color: "#15803D",
+                          marginBottom: "3px",
+                        }}
+                      >
+                        {brandName}
+                      </div>
+                    )}
 
                     <div
                       style={{
