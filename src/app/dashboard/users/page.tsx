@@ -54,7 +54,7 @@ export default function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm">
-          <Users className="w-4 h-4 text-signal" />
+          <Users className="w-4 h-4 text-signal-dark" />
           <span className="text-text-secondary">
             Online: <strong className="font-mono text-text-primary">{users.length}</strong>
           </span>
@@ -66,7 +66,7 @@ export default function UsersPage() {
         <button
           onClick={fetchUsers}
           disabled={loading}
-          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-signal-on px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
         >
           {loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

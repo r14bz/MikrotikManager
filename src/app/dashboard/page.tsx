@@ -50,7 +50,7 @@ export default function DashboardPage() {
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-7 h-7 animate-spin text-signal" />
+        <Loader2 className="w-7 h-7 animate-spin text-signal-dark" />
       </div>
     )
   }
@@ -105,7 +105,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-surface rounded-xl border border-line p-4">
               <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
-                <Server className="w-4 h-4 text-signal" />
+                <Server className="w-4 h-4 text-signal-dark" />
                 System Info
               </h3>
               <dl className="space-y-2 text-xs">
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
             <div className="bg-surface rounded-xl border border-line p-4">
               <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
-                <HardDrive className="w-4 h-4 text-signal" />
+                <HardDrive className="w-4 h-4 text-signal-dark" />
                 Resource Usage
               </h3>
 
@@ -180,7 +180,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-surface rounded-xl border border-line p-4">
               <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2 text-sm">
-                <Wifi className="w-4 h-4 text-signal" />
+                <Wifi className="w-4 h-4 text-signal-dark" />
                 Traffic Internet
               </h3>
               <dl className="space-y-2 text-xs">
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-text-secondary">Download (RX)</dt>
-                  <dd className="font-mono text-signal font-medium">{data.traffic?.rx}</dd>
+                  <dd className="font-mono text-signal-dark font-medium">{data.traffic?.rx}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-text-secondary">Upload (TX)</dt>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
             <div className="bg-surface rounded-xl border border-line overflow-hidden">
               <div className="px-4 py-3 border-b border-line flex items-center justify-between">
                 <h3 className="font-semibold text-text-primary flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4 text-signal" />
+                  <Users className="w-4 h-4 text-signal-dark" />
                   User Online
                 </h3>
                 <span className="text-xs bg-signal-soft text-signal-dark px-2 py-0.5 rounded-full font-mono font-medium">

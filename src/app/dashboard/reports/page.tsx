@@ -247,7 +247,7 @@ export default function ReportsPage() {
           <button
             onClick={handleExportCSV}
             disabled={!data}
-            className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-50 text-white px-3 py-2 rounded-lg text-sm flex-shrink-0"
+            className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-50 text-signal-on px-3 py-2 rounded-lg text-sm flex-shrink-0"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export CSV</span>
@@ -287,7 +287,7 @@ export default function ReportsPage() {
 
       {loading && !data ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-7 h-7 animate-spin text-signal" />
+          <Loader2 className="w-7 h-7 animate-spin text-signal-dark" />
         </div>
       ) : (
         data && (
@@ -305,7 +305,7 @@ export default function ReportsPage() {
                 >
                   <div className="flex items-center gap-1.5 mb-2">
                     <card.icon
-                      className={"w-3.5 h-3.5 " + (card.highlight ? "text-signal" : "text-signal")}
+                      className={"w-3.5 h-3.5 " + (card.highlight ? "text-signal" : "text-signal-dark")}
                     />
                     <p className={"text-xs " + (card.highlight ? "text-white/60" : "text-text-secondary")}>
                       {card.label}
@@ -326,7 +326,7 @@ export default function ReportsPage() {
             <div className="bg-surface rounded-xl border border-line">
               <div className="px-5 py-4 border-b border-line">
                 <h3 className="font-semibold text-text-primary flex items-center gap-2 text-sm">
-                  <BarChart3 className="w-4 h-4 text-signal" />
+                  <BarChart3 className="w-4 h-4 text-signal-dark" />
                   Berdasarkan Profile
                 </h3>
               </div>

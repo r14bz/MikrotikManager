@@ -147,7 +147,7 @@ export default function VouchersPage() {
                 type="button"
                 onClick={() => fetchProfiles(prices)}
                 disabled={profilesLoading}
-                className="flex items-center gap-1 text-xs text-signal hover:text-signal-dark font-medium"
+                className="flex items-center gap-1 text-xs text-signal-dark hover:opacity-70 font-medium"
               >
                 <RefreshCw className={"w-3 h-3 " + (profilesLoading ? "animate-spin" : "")} />
                 Refresh
@@ -226,7 +226,7 @@ export default function VouchersPage() {
           <button
             onClick={handleGenerate}
             disabled={loading || !profile || profilesLoading || !!profilesError}
-            className="w-full bg-signal hover:bg-signal-dark disabled:opacity-50 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-signal hover:bg-signal-dark disabled:opacity-50 text-signal-on font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
           >
             {loading ? (
               <>
@@ -269,7 +269,7 @@ export default function VouchersPage() {
               {result.success && result.vouchers ? (
                 <button
                   onClick={handlePrint}
-                  className="mt-4 w-full bg-signal hover:bg-signal-dark text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2"
+                  className="mt-4 w-full bg-signal hover:bg-signal-dark text-signal-on font-medium py-2 rounded-lg flex items-center justify-center gap-2"
                 >
                   <Printer className="w-4 h-4" />
                   Print Voucher ({result.count})

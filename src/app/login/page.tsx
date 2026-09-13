@@ -97,7 +97,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-signal hover:bg-signal-dark disabled:opacity-60 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-signal hover:bg-signal-dark disabled:opacity-60 text-signal-on font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {loading ? "Masuk..." : "Masuk"}

@@ -79,7 +79,7 @@ export default function PrintPage() {
       <div className="no-print p-4 bg-paper flex items-center gap-3 sticky top-0 border-b border-line">
         <button
           onClick={() => window.print()}
-          className="bg-signal hover:bg-signal-dark text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          className="bg-signal hover:bg-signal-dark text-signal-on px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
           Print Voucher
         </button>
@@ -142,7 +142,7 @@ export default function PrintPage() {
                       style={{
                         fontWeight: "bold",
                         fontSize: "12px",
-                        color: "#0F9E97",
+                        color: "#15803D",
                         marginBottom: "3px",
                       }}
                     >

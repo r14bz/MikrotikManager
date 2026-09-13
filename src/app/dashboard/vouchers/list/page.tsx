@@ -317,7 +317,7 @@ export default function VoucherListPage() {
           <button
             onClick={() => saveEditPrice(v)}
             disabled={savingPrice}
-            className="p-1 text-signal hover:bg-signal-soft rounded"
+            className="p-1 text-signal-dark hover:bg-signal-soft rounded"
             title="Simpan"
           >
             {savingPrice ? (
@@ -370,7 +370,7 @@ export default function VoucherListPage() {
         className={
           "p-1.5 rounded-md " +
           (v.status === "disabled"
-            ? "text-signal hover:bg-signal-soft"
+            ? "text-signal-dark hover:bg-signal-soft"
             : "text-amber hover:bg-amber-soft")
         }
         title={v.status === "disabled" ? "Enable" : "Disable"}
@@ -399,7 +399,7 @@ export default function VoucherListPage() {
         <button
           onClick={fetchVouchers}
           disabled={loading}
-          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-signal hover:bg-signal-dark disabled:opacity-60 text-signal-on px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
         >
           {loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -491,7 +491,7 @@ export default function VoucherListPage() {
                 <th className="px-3 py-3 w-10">
                   <button onClick={toggleSelectAll} className="text-text-muted">
                     {selected.length === vouchers.length && vouchers.length > 0 ? (
-                      <CheckSquare className="w-4 h-4 text-signal" />
+                      <CheckSquare className="w-4 h-4 text-signal-dark" />
                     ) : (
                       <Square className="w-4 h-4" />
                     )}
@@ -532,7 +532,7 @@ export default function VoucherListPage() {
                     <td className="px-3 py-3">
                       <button onClick={() => toggleSelect(v.id)}>
                         {selected.includes(v.id) ? (
-                          <CheckSquare className="w-4 h-4 text-signal" />
+                          <CheckSquare className="w-4 h-4 text-signal-dark" />
                         ) : (
                           <Square className="w-4 h-4 text-text-muted" />
                         )}
@@ -587,7 +587,7 @@ export default function VoucherListPage() {
                 className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-line text-xs text-text-secondary"
               >
                 {selected.length === vouchers.length && vouchers.length > 0 ? (
-                  <CheckSquare className="w-4 h-4 text-signal" />
+                  <CheckSquare className="w-4 h-4 text-signal-dark" />
                 ) : (
                   <Square className="w-4 h-4 text-text-muted" />
                 )}
@@ -599,7 +599,7 @@ export default function VoucherListPage() {
                     <div className="flex items-start gap-3">
                       <button onClick={() => toggleSelect(v.id)} className="mt-0.5 flex-shrink-0">
                         {selected.includes(v.id) ? (
-                          <CheckSquare className="w-4 h-4 text-signal" />
+                          <CheckSquare className="w-4 h-4 text-signal-dark" />
                         ) : (
                           <Square className="w-4 h-4 text-text-muted" />
                         )}

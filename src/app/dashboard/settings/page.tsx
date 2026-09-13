@@ -218,7 +218,7 @@ export default function SettingsPage() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-signal hover:bg-signal-dark disabled:opacity-60 text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
+        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-signal hover:bg-signal-dark disabled:opacity-60 text-signal-on font-medium px-6 py-2.5 rounded-lg transition-colors"
       >
         {saving ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -233,7 +233,7 @@ export default function SettingsPage() {
       {/* Ganti Password */}
       <div className="bg-surface rounded-xl border border-line p-5 space-y-4">
         <h3 className="font-semibold text-text-primary flex items-center gap-2 text-sm">
-          <KeyRound className="w-4 h-4 text-signal" />
+          <KeyRound className="w-4 h-4 text-signal-dark" />
           Ganti Password Admin
         </h3>
 

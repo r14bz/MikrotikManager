@@ -16,10 +16,15 @@
   --text-secondary: #5D6679;
   --text-muted: #94A0B4;
 
-  /* Satu warna aksen utama: "signal" — teal sinyal/konektivitas */
-  --signal: #0F9E97;
-  --signal-dark: #0B7A75;
-  --signal-soft: #E3F5F3;
+  /* Satu warna aksen utama: "signal" — hijau neon (Luminous Moss),
+     selaras dengan warna asli logo MikroTik Hotspot Manager */
+  --signal: #2BEE34;
+  --signal-dark: #15803D;
+  --signal-soft: #E6FBEA;
+  /* Teks di atas elemen ber-background --signal (mis. tombol) HARUS pakai
+     warna gelap (--signal-on / --ink), bukan putih — hijau ini terlalu
+     terang untuk teks putih (kontrasnya gagal WCAG). */
+  --signal-on: #0E1526;
 
   /* Status sekunder */
   --amber: #B8630B;
@@ -41,6 +46,7 @@
   --color-signal: var(--signal);
   --color-signal-dark: var(--signal-dark);
   --color-signal-soft: var(--signal-soft);
+  --color-signal-on: var(--signal-on);
   --color-amber: var(--amber);
   --color-amber-soft: var(--amber-soft);
   --color-danger: var(--danger);
